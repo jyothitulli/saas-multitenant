@@ -1,0 +1,88 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  super_admin
+  tenant_admin
+  user
+}
+
+enum Plan {
+  free
+  pro
+  enterprise
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  subdomain String   @unique
+  plan      Plan     @default(free)
+
+  users     User[]
+  projects  Project[]
+  tasks     Task[]
+  audits    AuditLog[]
+
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id        String   @id @default(uuid())
+  tenantId  String?
+  tenant    Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  email     String
+  password  String
+  role      Role
+
+  audits    AuditLog[]
+  createdAt DateTime @default(now())
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+}
+
+model Project {
+  id        String   @id @default(uuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  name      String
+  tasks     Task[]
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+}
+
+model Task {
+  id        String   @id @default(uuid())
+  tenantId  String
+  projectId String
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  title     String
+  status    String
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  tenantId  String?
+  userId    String?
+
+  action    String
+  timestamp DateTime @default(now())
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id])
+  user   User?   @relation(fields: [userId], references: [id])
+}
