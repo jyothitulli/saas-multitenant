@@ -19,70 +19,126 @@ enum Plan {
 }
 
 model Tenant {
-  id        String   @id @default(uuid())
-  name      String
-  subdomain String   @unique
-  plan      Plan     @default(free)
+  id                String   @id @default(uuid())
+  name              String
+  subdomain         String   @unique
+  status            TenantStatus
+  subscription_plan SubscriptionPlan
+  max_users         Int
+  max_projects      Int
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
 
-  users     User[]
-  projects  Project[]
-  tasks     Task[]
-  audits    AuditLog[]
-
-  createdAt DateTime @default(now())
+  users             User[]
+  projects          Project[]
+  tasks             Task[]
+  audit_logs        AuditLog[]
 }
+enum TenantStatus {
+  active
+  suspended
+  trial
+}
+
+enum SubscriptionPlan {
+  free
+  pro
+  enterprise
+}
+
 
 model User {
-  id        String   @id @default(uuid())
-  tenantId  String?
-  tenant    Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id            String   @id @default(uuid())
+  tenant_id     String
+  email         String
+  password_hash String
+  full_name     String
+  role          UserRole
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
 
-  email     String
-  password  String
-  role      Role
+  tenant        Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  projects      Project[] @relation("CreatedProjects")
+  tasks         Task[]    @relation("AssignedTasks")
+  audit_logs    AuditLog[]
 
-  audits    AuditLog[]
-  createdAt DateTime @default(now())
-
-  @@unique([tenantId, email])
-  @@index([tenantId])
+  @@unique([tenant_id, email])
 }
+enum UserRole {
+  super_admin
+  tenant_admin
+  user
+}
+
 
 model Project {
-  id        String   @id @default(uuid())
-  tenantId  String
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id          String        @id @default(uuid())
+  tenant_id   String
+  name        String
+  description String?
+  status      ProjectStatus
+  created_by  String
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
 
-  name      String
-  tasks     Task[]
-  createdAt DateTime @default(now())
+  tenant      Tenant        @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  creator     User          @relation("CreatedProjects", fields: [created_by], references: [id])
+  tasks       Task[]
 
-  @@index([tenantId])
+  @@index([tenant_id])
 }
+enum ProjectStatus {
+  active
+  archived
+  completed
+}
+
 
 model Task {
-  id        String   @id @default(uuid())
-  tenantId  String
-  projectId String
+  id           String      @id @default(uuid())
+  project_id   String
+  tenant_id    String
+  title        String
+  description  String?
+  status       TaskStatus
+  priority     TaskPriority
+  assigned_to  String?
+  due_date     DateTime?
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @updatedAt
 
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tenant       Tenant      @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  project      Project     @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  assignee     User?       @relation("AssignedTasks", fields: [assigned_to], references: [id])
 
-  title     String
-  status    String
-  createdAt DateTime @default(now())
-
-  @@index([tenantId])
+  @@index([tenant_id, project_id])
 }
+
+enum TaskStatus {
+  todo
+  in_progress
+  completed
+}
+
+enum TaskPriority {
+  low
+  medium
+  high
+}
+
 
 model AuditLog {
-  id        String   @id @default(uuid())
-  tenantId  String?
-  userId    String?
+  id          String   @id @default(uuid())
+  tenant_id   String
+  user_id     String?
+  action      String
+  entity_type String?
+  entity_id   String?
+  ip_address  String?
+  created_at  DateTime @default(now())
 
-  action    String
-  timestamp DateTime @default(now())
-
-  tenant Tenant? @relation(fields: [tenantId], references: [id])
-  user   User?   @relation(fields: [userId], references: [id])
+  tenant      Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
 }
+
