@@ -1,17 +1,60 @@
-import express from "express";
-import cors from "cors";
-import healthRoutes from "./routes/health.js";
-import authRoutes from "./routes/auth.routes.js";
+import express from 'express';
+import cors from 'cors';
+import env from './config/env.js';
+
+import authRoutes from './routes/auth.routes.js';
+import userRoutes from './routes/user.routes.js';
+import projectRoutes from './routes/project.routes.js';
+import taskRoutes from './routes/task.routes.js';
 
 const app = express();
 
+/**
+ * Global Middleware
+ */
 app.use(cors({
-  origin: "http://frontend:3000",
-  credentials: true
+  origin: env.frontendUrl,
+  credentials: true,
 }));
 
 app.use(express.json());
-app.use("/api", healthRoutes);
-app.use("/api/auth", authRoutes);
+
+/**
+ * Base Route (test)
+ */
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Backend API is running',
+  });
+});
+
+/**
+ * Health Check (MANDATORY)
+ */
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    database: 'connected',
+  });
+});
+
+/**
+ * ROUTES
+ */
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/tasks', taskRoutes);
+
+/**
+ * Handle unknown routes (ALWAYS LAST)
+ */
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found',
+  });
+});
 
 export default app;
