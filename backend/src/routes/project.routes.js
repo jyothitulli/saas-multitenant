@@ -5,7 +5,7 @@ import {
   updateProjectStatus,
 } from '../controllers/project.controller.js';
 
-import { authenticate } from '../middleware/auth.middleware.js';
+import { authMiddleware } from '../middleware/auth.middleware.js';
 import { allowRoles } from '../middleware/rbac.middleware.js';
 import { enforceTenant } from '../middleware/tenant.middleware.js';
 
@@ -16,7 +16,7 @@ const router = express.Router();
  */
 router.post(
   '/',
-  authenticate,
+  authMiddleware,
   enforceTenant,
   allowRoles('tenant_admin'),
   createProject
@@ -24,14 +24,14 @@ router.post(
 
 router.get(
   '/',
-  authenticate,
+  authMiddleware,
   enforceTenant,
   listProjects
 );
 
 router.patch(
   '/:id/status',
-  authenticate,
+  authMiddleware,
   enforceTenant,
   allowRoles('tenant_admin'),
   updateProjectStatus

@@ -1,6 +1,6 @@
 import prisma from "../config/prisma.js";
 
-export default async function tenantMiddleware(req, res, next) {
+export default async function enforceTenant(req, res, next) {
   // Super admin has no tenant
   if (req.user?.role === "super_admin") {
     req.tenant = null;

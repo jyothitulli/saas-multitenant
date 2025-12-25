@@ -1,16 +1,14 @@
-const { Pool } = require("pg");
+import pg from 'pg';
+import env from './env.js';
+
+const { Pool } = pg;
 
 const pool = new Pool({
-  // Use 'localhost' for Thunder Client/Nodemon, 
-  // but the evaluator will use 'database' from the environment variable [cite: 91, 104]
-  host: process.env.DB_HOST || "localhost", 
-  port: 5432, // MANDATORY port [cite: 84]
-  user: "postgres",
-  password: "postgres",
-  database: "saas_db",
+  host: env.db.host,
+  port: env.db.port,
+  user: env.db.user,
+  password: env.db.password,
+  database: env.db.database,
 });
 
-module.exports = {
-  query: (text, params) => pool.query(text, params),
-  pool
-};
+export default pool;

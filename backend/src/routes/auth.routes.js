@@ -1,8 +1,8 @@
 import express from 'express';
 import { registerTenant, login, me } from '../controllers/auth.controller.js';
-import { authenticate } from '../middleware/auth.middleware.js';
+import authMiddleware from '../middleware/auth.middleware.js';
 import { allowRoles } from '../middleware/rbac.middleware.js';
-import { enforceTenant } from '../middleware/tenant.middleware.js';
+import enforceTenant from '../middleware/tenant.middleware.js';
 
 const router = express.Router();
 
@@ -15,14 +15,14 @@ router.post('/login', login);
 /**
  * AUTHENTICATED ROUTES
  */
-router.get('/me', authenticate, me);
+router.get('/me', authMiddleware, me);
 
 /**
  * RBAC TEST ROUTE (Super Admin only)
  */
 router.get(
   '/admin-only',
-  authenticate,
+  authMiddleware, // fixed from 'authenticate' → 'authMiddleware'
   allowRoles('super_admin'),
   (req, res) => {
     res.json({
@@ -37,8 +37,8 @@ router.get(
  */
 router.get(
   '/tenant-test',
-  authenticate,
-  enforceTenant,
+  authMiddleware,
+  enforceTenant, // removed extra comma
   (req, res) => {
     res.json({
       success: true,
