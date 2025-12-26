@@ -1,18 +1,11 @@
-import pg from 'pg';
-import env from './env.js';
-
-const { Pool } = pg;
+const { Pool } = require("pg");
 
 const pool = new Pool({
-  host: process.env.DB_HOST || "localhost",
-  port: 5432,
-  user: postgres,
-  password: postgres,
-  database: saas_db,
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
 });
 
-module.exports = {
-  query: (text, params) => pool.query(text, params),
-  pool
-};
-export default pool;
+module.exports = pool;
