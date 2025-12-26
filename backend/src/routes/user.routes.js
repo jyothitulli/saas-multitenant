@@ -1,41 +1,14 @@
-import express from 'express';
-import {
-  createUser,
-  listUsers,
-  updateUserStatus,
-} from '../controllers/user.controller.js';
 
-import  authMiddleware  from '../middleware/auth.middleware.js';
-import { allowRoles } from '../middleware/rbac.middleware.js';
-import  enforceTenant  from '../middleware/tenant.middleware.js';
-
+const express = require('express');
 const router = express.Router();
+const userController = require('../controllers/user.controller');
+const auth = require('../middleware/authMiddleware');
+const role = require('../middleware/role');
 
-/**
- * USER MANAGEMENT ROUTES
- */
-router.post(
-  '/',
-  authMiddleware,
-  enforceTenant,
-  allowRoles('tenant_admin'),
-  createUser
-);
+// User Management Routes
+router.get('/', auth, userController.getUsers);
+router.get('/:id', auth, userController.getUserById);
+router.put('/:id', auth, role(['admin', 'super_admin']), userController.updateUser);
+router.delete('/:id', auth, role(['admin', 'super_admin']), userController.deleteUser);
 
-router.get(
-  '/',
-  authMiddleware,
-  enforceTenant,
-  allowRoles('tenant_admin'),
-  listUsers
-);
-
-router.patch(
-  '/:id/status',
-  authMiddleware,
-  enforceTenant,
-  allowRoles('tenant_admin'),
-  updateUserStatus
-);
-
-export default router;
+module.exports = router;

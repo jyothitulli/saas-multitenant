@@ -48,4 +48,8 @@ router.get(
   }
 );
 
-export default router;
+// src/routes/auth.routes.js
+
+
+export { router as authRouter };
+

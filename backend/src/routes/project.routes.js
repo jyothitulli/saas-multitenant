@@ -1,40 +1,14 @@
-import express from 'express';
-import {
-  createProject,
-  listProjects,
-  updateProjectStatus,
-} from '../controllers/project.controller.js';
 
-import { authMiddleware } from '../middleware/auth.middleware.js';
-import { allowRoles } from '../middleware/rbac.middleware.js';
-import { enforceTenant } from '../middleware/tenant.middleware.js';
-
+const express = require('express');
 const router = express.Router();
+const projectController = require('../controllers/project.controller');
+const auth = require('../middleware/authMiddleware');
 
-/**
- * PROJECT ROUTES
- */
-router.post(
-  '/',
-  authMiddleware,
-  enforceTenant,
-  allowRoles('tenant_admin'),
-  createProject
-);
+// Project CRUD Routes
+router.get('/', auth, projectController.getProjects);
+router.post('/', auth, projectController.createProject);
+router.get('/:id', auth, projectController.getProjectById);
+router.put('/:id', auth, projectController.updateProject);
+router.delete('/:id', auth, projectController.deleteProject);
 
-router.get(
-  '/',
-  authMiddleware,
-  enforceTenant,
-  listProjects
-);
-
-router.patch(
-  '/:id/status',
-  authMiddleware,
-  enforceTenant,
-  allowRoles('tenant_admin'),
-  updateProjectStatus
-);
-
-export default router;
+module.exports = router;

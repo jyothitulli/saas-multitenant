@@ -1,25 +1,23 @@
-// backend/src/middleware/auth.middleware.js
-import { verifyToken } from '../utils/jwt.js';
+// src/middleware/auth.middleware.js
+import jwt from 'jsonwebtoken';
 import { errorResponse } from '../utils/response.util.js';
 
-export default function authMiddleware(req, res, next) {
+const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
 
-  // Check if Authorization header exists
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return errorResponse(res, 'Unauthorized', 401);
+  if (!token) {
+    return errorResponse(res, 'No token, authorization denied', 401);
   }
 
   try {
-    const token = authHeader.split(' ')[1];
-    const decoded = verifyToken(token);
-
-    // Attach user info to request object
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
     req.user = decoded;
-
     next();
   } catch (err) {
     console.error('JWT Error:', err);
-    return errorResponse(res, 'Invalid or expired token', 401);
+    return errorResponse(res, 'Token is not valid', 401);
   }
-}
+};
+
+export default authMiddleware;

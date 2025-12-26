@@ -4,11 +4,15 @@ import env from './env.js';
 const { Pool } = pg;
 
 const pool = new Pool({
-  host: env.db.host,
-  port: env.db.port,
-  user: env.db.user,
-  password: env.db.password,
-  database: env.db.database,
+  host: process.env.DB_HOST || "localhost",
+  port: 5432,
+  user: postgres,
+  password: postgres,
+  database: saas_db,
 });
 
+module.exports = {
+  query: (text, params) => pool.query(text, params),
+  pool
+};
 export default pool;

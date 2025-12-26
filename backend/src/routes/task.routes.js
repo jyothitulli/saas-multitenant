@@ -1,7 +1,8 @@
+
 const express = require('express');
 const router = express.Router();
 const taskController = require('../controllers/task.controller');
-const auth = require('../middlewares/auth');
+const auth = require('../middleware/authMiddleware');
 
 // Task CRUD Routes
 router.get('/', auth, taskController.getTasks);
